@@ -51,7 +51,9 @@ export class ApplicationFactorsComponent implements OnInit {
   mfaStepUpRule: string;
   adaptiveMfaRule: string;
   rememberDevice: any;
+  skipEnroll: any;
   rememberDeviceTime: any;
+  skipEnrollTime: any;
   deviceIdentifiers: any[];
 
   constructor(private route: ActivatedRoute,
@@ -71,9 +73,14 @@ export class ApplicationFactorsComponent implements OnInit {
     this.mfaStepUpRule = applicationMfaSettings.stepUpAuthenticationRule;
     this.adaptiveMfaRule = applicationMfaSettings.adaptiveAuthenticationRule;
     this.rememberDevice = applicationMfaSettings.rememberDevice || {};
+    this.skipEnroll = applicationMfaSettings.skipEnroll || {};
     this.rememberDeviceTime = {
-      'expirationTime': this.getExpiresIn(this.rememberDevice.expirationTimeSeconds),
+      'expirationTime': this.getTime(this.rememberDevice.expirationTimeSeconds),
       'expirationTimeUnit': this.getUnitTime(this.rememberDevice.expirationTimeSeconds)
+    }
+    this.skipEnrollTime = {
+      'skipTime': this.getTime(this.skipEnroll.skipTimeSeconds),
+      'skipTimeUnit': this.getUnitTime(this.skipEnroll.skipTimeSeconds)
     }
     this.editMode = this.authService.hasPermissions(['application_settings_update']);
     this.factorService.findByDomain(this.domainId).subscribe(response => this.factors = [...response]);
@@ -83,15 +90,32 @@ export class ApplicationFactorsComponent implements OnInit {
     const data: any = {};
     data.factors = this.application.factors;
     data.settings = {};
-    if (this.rememberDevice.active && this.rememberDeviceTime.expirationTime) {
-      this.rememberDeviceTime.expirationTime = Math.abs(this.rememberDeviceTime.expirationTime);
-      this.rememberDevice.expirationTimeSeconds =
-        moment.duration(this.rememberDeviceTime.expirationTime, this.rememberDeviceTime.expirationTimeUnit).asSeconds();
+
+    if (this.rememberDevice.active) {
+      if (!this.rememberDeviceTime.expirationTime) {
+        this.rememberDevice.expirationTimeSeconds = null;
+      } else {
+        this.rememberDeviceTime.expirationTime = Math.abs(this.rememberDeviceTime.expirationTime);
+        this.rememberDevice.expirationTimeSeconds =
+          moment.duration(this.rememberDeviceTime.expirationTime, this.rememberDeviceTime.expirationTimeUnit).asSeconds();
+      }
     }
+
+    if (this.skipEnroll.active) {
+      if (!this.skipEnrollTime.skipTime) {
+        this.skipEnroll.skipTimeSeconds = null;
+      } else {
+        this.skipEnroll.skipTimeSeconds = Math.abs(this.skipEnroll.expirationTime);
+        this.skipEnroll.skipTimeSeconds =
+          moment.duration(this.skipEnrollTime.skipTime, this.skipEnrollTime.skipTimeUnit).asSeconds();
+      }
+    }
+
     data.settings.mfa = {
       'stepUpAuthenticationRule': this.mfaStepUpRule,
       'adaptiveAuthenticationRule': this.adaptiveMfaRule,
-      'rememberDevice': this.rememberDevice
+      'rememberDevice': this.rememberDevice,
+      'skipEnroll': this.skipEnroll
     };
     this.applicationService.patch(this.domainId, this.application.id, data).subscribe(data => {
       this.application = data;
@@ -166,7 +190,25 @@ export class ApplicationFactorsComponent implements OnInit {
     return this.rememberDeviceTime.expirationTimeUnit;
   }
 
-  private getExpiresIn(value) {
+  displaySkipTime() {
+    return this.skipEnrollTime.skipTime;
+  }
+
+  displaySkipTimeUnit() {
+    return this.skipEnrollTime.skipTimeUnit;
+  }
+
+  onSkipTimeInEvent($event) {
+    this.skipEnrollTime.skipTime = $event.target.value;
+    this.formChanged = true;
+  }
+
+  onSkipTimeUnitEvent($event) {
+    this.skipEnrollTime.skipTimeUnit = $event.value;
+    this.formChanged = true;
+  }
+
+  private getTime(value) {
     if (value) {
       const humanizeDate = moment.duration(value, 'seconds').humanize().split(' ');
       const humanizeDateValue = (humanizeDate.length === 2)
@@ -188,7 +230,12 @@ export class ApplicationFactorsComponent implements OnInit {
     return 'seconds'
   }
 
-  changeActive() {
+  changeSkipEnrollActive(){
+    this.skipEnroll.active = !this.skipEnroll.active;
+    this.formChanged = true;
+  }
+
+  changeRememberDeviceActive() {
     this.rememberDevice.active = !this.rememberDevice.active
     this.formChanged = true;
     if (!this.rememberDevice.deviceIdentifierId) {

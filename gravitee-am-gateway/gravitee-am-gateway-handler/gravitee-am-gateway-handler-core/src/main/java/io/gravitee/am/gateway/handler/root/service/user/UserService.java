@@ -44,6 +44,8 @@ public interface UserService {
 
     Single<User> addFactor(String userId, EnrolledFactor enrolledFactor, io.gravitee.am.identityprovider.api.User principal);
 
+    Completable setEnrolSkippedTime(Client client, User user);
+
     default Single<RegistrationResponse> register(Client client, User user) {
         return register(client, user, null);
     }

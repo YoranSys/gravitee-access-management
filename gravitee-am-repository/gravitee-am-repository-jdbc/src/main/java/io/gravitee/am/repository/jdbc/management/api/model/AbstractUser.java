@@ -74,6 +74,8 @@ public class AbstractUser {
     private long loginsCount;
     @Column("logged_at")
     private LocalDateTime loggedAt;
+    @Column("enroll_skipped_at")
+    private LocalDateTime enrollSkippedAt;
     @Column("created_at")
     private LocalDateTime createdAt;
     @Column("updated_at")
@@ -315,6 +317,14 @@ public class AbstractUser {
 
     public void setLoggedAt(LocalDateTime loggedAt) {
         this.loggedAt = loggedAt;
+    }
+
+    public LocalDateTime getEnrollSkippedAt() {
+        return enrollSkippedAt;
+    }
+
+    public void setEnrollSkippedAt(LocalDateTime enrollSkippedAt) {
+        this.enrollSkippedAt = enrollSkippedAt;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -17,6 +17,7 @@ package io.gravitee.am.repository.mongodb.management.internal.model;
 
 import io.gravitee.am.model.MFASettings;
 import io.gravitee.am.model.RememberDeviceSettings;
+import io.gravitee.am.model.SkipEnrollSettings;
 
 import java.util.Objects;
 
@@ -32,6 +33,7 @@ public class MFASettingsMongo {
     private String stepUpAuthenticationRule;
     private String adaptiveAuthenticationRule;
     private RememberDeviceSettingsMongo rememberDevice;
+    private SkipEnrollSettingsMongo skipEnroll;
 
     public String getLoginRule() {
         return loginRule;
@@ -65,12 +67,21 @@ public class MFASettingsMongo {
         this.rememberDevice = rememberDevice;
     }
 
+    public SkipEnrollSettingsMongo getSkipEnroll() {
+        return skipEnroll;
+    }
+
+    public void setSkipEnroll(SkipEnrollSettingsMongo skipEnroll) {
+        this.skipEnroll = skipEnroll;
+    }
+
     public MFASettings convert() {
         MFASettings mfaSettings = new MFASettings();
         mfaSettings.setLoginRule(getLoginRule());
         mfaSettings.setStepUpAuthenticationRule(getStepUpAuthenticationRule());
         mfaSettings.setAdaptiveAuthenticationRule(getAdaptiveAuthenticationRule());
         mfaSettings.setRememberDevice(ofNullable(rememberDevice).orElse(new RememberDeviceSettingsMongo()).convert());
+        mfaSettings.setSkipEnroll(ofNullable(skipEnroll).orElse(new SkipEnrollSettingsMongo()).convert());
         return mfaSettings;
     }
 
@@ -81,6 +92,7 @@ public class MFASettingsMongo {
             mfaSettingsMongo.setStepUpAuthenticationRule(settings.getStepUpAuthenticationRule());
             mfaSettingsMongo.setAdaptiveAuthenticationRule(settings.getAdaptiveAuthenticationRule());
             mfaSettingsMongo.setRememberDevice(RememberDeviceSettingsMongo.convert(ofNullable(mfaSettings.getRememberDevice()).orElse(new RememberDeviceSettings())));
+            mfaSettingsMongo.setSkipEnroll(SkipEnrollSettingsMongo.convert(ofNullable(mfaSettings.getSkipEnroll()).orElse(new SkipEnrollSettings())));
             return mfaSettingsMongo;
         }).orElse(null);
     }

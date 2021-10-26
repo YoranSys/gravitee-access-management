@@ -75,6 +75,15 @@ public interface ConstantKeys {
     String FACTOR_KEY = "factor";
     String MFA_FACTOR_ID_CONTEXT_KEY = "mfaFactorId";
 
+    String USER_MFA_ENROLLMENT = "user_mfa_enrollment";
+    String MFA_ENROL_FACTOR_ID = "factorId";
+    String MFA_ENROL_SHARED_SECRET = "sharedSecret";
+    String MFA_ENROL_PHONE = "phone";
+    String MFA_ENROL_EMAIL = "email";
+    //Ten hours
+    long DEFAULT_ENROL_SKIP_TIME_SECONDS = 10 * 60 * 60;
+
+
     // Passwordless keys.
     String WEBAUTHN_SKIPPED_KEY = "webAuthnRegistrationSkipped";
     String WEBAUTHN_CREDENTIAL_ID_CONTEXT_KEY = "webAuthnCredentialId";
@@ -117,6 +126,8 @@ public interface ConstantKeys {
     //remember device
     String DEVICE_ALREADY_EXISTS_KEY = "deviceAlreadyExists";
     String REMEMBER_DEVICE_CONSENT_TIME_SECONDS = "rememberDeviceConsentTimeSeconds";
+    //10 days
+    long DEFAULT_REMEMBER_DEVICE_CONSENT_TIME = 10 * 60 * 60;
 
     // ------
     // Values used to find key into gravitee.yaml
@@ -135,4 +146,5 @@ public interface ConstantKeys {
     String HTTP_SSL_ALIASES_ENDPOINTS_END_SESSION = "end_session_endpoint";
     String HTTP_SSL_ALIASES_ENDPOINTS_REVOCATION = "revocation_endpoint";
     String HTTP_SSL_ALIASES_ENDPOINTS_INTROSPECTION = "introspection_endpoint";
+
 }

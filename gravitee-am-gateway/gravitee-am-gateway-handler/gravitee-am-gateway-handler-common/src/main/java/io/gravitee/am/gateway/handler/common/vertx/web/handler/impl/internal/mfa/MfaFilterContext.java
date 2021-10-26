@@ -16,13 +16,23 @@
 
 package io.gravitee.am.gateway.handler.common.vertx.web.handler.impl.internal.mfa;
 
+import io.gravitee.am.gateway.handler.common.utils.ConstantKeys;
 import io.gravitee.am.gateway.handler.common.vertx.web.handler.impl.internal.mfa.utils.MfaUtils;
 import io.gravitee.am.model.RememberDeviceSettings;
+import io.gravitee.am.model.SkipEnrollSettings;
+import io.gravitee.am.model.User;
+import io.gravitee.am.model.factor.EnrolledFactor;
 import io.gravitee.am.model.oidc.Client;
 import io.vertx.reactivex.ext.web.Session;
 
+import java.util.Date;
+
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static io.gravitee.am.gateway.handler.common.utils.ConstantKeys.LOGIN_ATTEMPT_KEY;
+import static io.gravitee.am.gateway.handler.common.utils.ConstantKeys.*;
+import static java.lang.Boolean.TRUE;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
 
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
@@ -32,12 +42,14 @@ public class MfaFilterContext {
 
     private final Client client;
     private final Session session;
+    private final User endUser;
     private boolean isAmfaRuleTrue;
     private boolean isStepUpRuleTrue;
 
-    public MfaFilterContext(Client client, Session session) {
+    public MfaFilterContext(Client client, Session session, User endUser) {
         this.client = client;
         this.session = session;
+        this.endUser = endUser;
     }
 
     public String getAmfaRule() {
@@ -75,7 +87,17 @@ public class MfaFilterContext {
     }
 
     public boolean isMfaSkipped() {
-        return MfaUtils.isMfaSkipped(session);
+        return !hasEndUserAlreadyEnrolled() && isEnrolSkipped();
+    }
+
+    private boolean isEnrolSkipped() {
+        final SkipEnrollSettings skipEnrolSettings = MfaUtils.getMfaSkipEnrolSettings(client);
+        if (TRUE.equals(skipEnrolSettings.getActive()) && nonNull(endUser.getEnrollSkippedAt())) {
+            Date now = new Date();
+            long skipTime = ofNullable(skipEnrolSettings.getSkipTimeSeconds()).orElse(DEFAULT_ENROL_SKIP_TIME_SECONDS) * 1000L;
+            return endUser.getEnrollSkippedAt().getTime() + skipTime > now.getTime();
+        }
+        return false;
     }
 
     public boolean isUserStronglyAuth() {
@@ -92,5 +114,23 @@ public class MfaFilterContext {
 
     public Object getLoginAttempt() {
         return session.get(LOGIN_ATTEMPT_KEY);
+    }
+
+    public boolean hasEndUserAlreadyEnrolled() {
+        return nonNull(session.get(ConstantKeys.ENROLLED_FACTOR_ID_KEY));
+    }
+
+    public boolean isMfaChallengeComplete(){
+        return nonNull(session.get(MFA_CHALLENGE_COMPLETED_KEY)) &&
+                TRUE.equals(session.get(ConstantKeys.MFA_CHALLENGE_COMPLETED_KEY));
+    }
+
+    public boolean userHasMatchingFactors() {
+        if (isNull(endUser.getFactors()) || endUser.getFactors().isEmpty()) {
+            return false;
+        }
+        return endUser.getFactors().stream()
+                .map(EnrolledFactor::getFactorId)
+                .anyMatch(client.getFactors()::contains);
     }
 }

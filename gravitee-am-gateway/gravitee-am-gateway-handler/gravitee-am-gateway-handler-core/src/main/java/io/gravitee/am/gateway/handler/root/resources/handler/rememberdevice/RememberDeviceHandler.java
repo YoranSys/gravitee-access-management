@@ -26,8 +26,7 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 
 import java.util.Objects;
 
-import static io.gravitee.am.gateway.handler.common.utils.ConstantKeys.CLIENT_CONTEXT_KEY;
-import static io.gravitee.am.gateway.handler.common.utils.ConstantKeys.DEVICE_ALREADY_EXISTS_KEY;
+import static io.gravitee.am.gateway.handler.common.utils.ConstantKeys.*;
 import static io.gravitee.am.gateway.handler.manager.deviceidentifiers.DeviceIdentifierManagerImpl.REMEMBER_DEVICE_IS_ACTIVE;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -65,7 +64,7 @@ public class RememberDeviceHandler implements Handler<RoutingContext> {
         routingContext.put(DEVICE_ALREADY_EXISTS_KEY, TRUE.equals(routingContext.session().get(DEVICE_ALREADY_EXISTS_KEY)));
         if (rememberDeviceSettings.isActive() && FALSE.equals(routingContext.session().get(DEVICE_ALREADY_EXISTS_KEY))) {
             final Long expirationTimeSeconds = rememberDeviceSettings.getExpirationTimeSeconds();
-            final Long consentTime = isNull(expirationTimeSeconds) ? 7200L : expirationTimeSeconds;
+            final Long consentTime = isNull(expirationTimeSeconds) ? DEFAULT_REMEMBER_DEVICE_CONSENT_TIME : expirationTimeSeconds;
             routingContext.put(ConstantKeys.REMEMBER_DEVICE_CONSENT_TIME_SECONDS, consentTime);
         }
         routingContext.next();

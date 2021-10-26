@@ -118,6 +118,8 @@ public class User implements IUser {
 
     private Date lastPasswordReset;
 
+    private Date enrollSkippedAt;
+
     private Date createdAt;
 
     private Date updatedAt;
@@ -184,6 +186,7 @@ public class User implements IUser {
         this.additionalInformation = other.additionalInformation != null ? new HashMap<>(other.additionalInformation) : null;
         this.loggedAt = other.loggedAt;
         this.lastPasswordReset = other.lastPasswordReset;
+        this.enrollSkippedAt = other.enrollSkippedAt;
         this.createdAt = other.createdAt;
         this.updatedAt = other.updatedAt;
     }
@@ -568,6 +571,14 @@ public class User implements IUser {
 
     public void setLoggedAt(Date loggedAt) {
         this.loggedAt = loggedAt;
+    }
+
+    public Date getEnrollSkippedAt() {
+        return enrollSkippedAt;
+    }
+
+    public void setEnrollSkippedAt(Date enrollSkippedAt) {
+        this.enrollSkippedAt = enrollSkippedAt;
     }
 
     public List<String> getRoles() {

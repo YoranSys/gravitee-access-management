@@ -20,6 +20,8 @@ import io.gravitee.am.service.utils.SetterUtils;
 
 import java.util.Optional;
 
+import static java.util.Objects.nonNull;
+
 /**
  * @author Rémi SULTAN (remi.sultan at graviteesource.com)
  * @author GraviteeSource Team
@@ -30,6 +32,7 @@ public class PatchMFASettings {
     private Optional<String> stepUpAuthenticationRule;
     private Optional<String> adaptiveAuthenticationRule;
     private Optional<PatchRememberDeviceSettings> rememberDevice;
+    private Optional<PatchSkipEnrollSettings> skipEnroll;
 
     public Optional<String> getLoginRule() {
         return loginRule;
@@ -63,14 +66,26 @@ public class PatchMFASettings {
         this.rememberDevice = rememberDevice;
     }
 
+    public Optional<PatchSkipEnrollSettings> getSkipEnroll() {
+        return skipEnroll;
+    }
+
+    public void setSkipEnroll(Optional<PatchSkipEnrollSettings> skipEnroll) {
+        this.skipEnroll = skipEnroll;
+    }
+
     public MFASettings patch(MFASettings _toPatch) {
         MFASettings toPatch = _toPatch == null ? new MFASettings() : new MFASettings(_toPatch);
         SetterUtils.safeSet(toPatch::setLoginRule, this.getLoginRule());
         SetterUtils.safeSet(toPatch::setStepUpAuthenticationRule, this.getStepUpAuthenticationRule());
         SetterUtils.safeSet(toPatch::setAdaptiveAuthenticationRule, this.getAdaptiveAuthenticationRule());
 
-        if (this.getRememberDevice() != null && this.getRememberDevice().isPresent()) {
+        if (nonNull(this.getRememberDevice()) && this.getRememberDevice().isPresent()) {
             toPatch.setRememberDevice(this.getRememberDevice().get().patch(toPatch.getRememberDevice()));
+        }
+
+        if (nonNull(this.getSkipEnroll()) && this.getSkipEnroll().isPresent()) {
+            toPatch.setSkipEnroll(this.getSkipEnroll().get().patch(toPatch.getSkipEnroll()));
         }
         return toPatch;
     }

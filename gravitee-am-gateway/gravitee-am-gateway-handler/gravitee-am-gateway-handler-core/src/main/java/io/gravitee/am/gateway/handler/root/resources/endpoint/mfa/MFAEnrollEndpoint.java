@@ -23,6 +23,7 @@ import io.gravitee.am.gateway.handler.common.utils.ConstantKeys;
 import io.gravitee.am.gateway.handler.common.vertx.utils.RequestUtils;
 import io.gravitee.am.gateway.handler.common.vertx.utils.UriBuilderRequest;
 import io.gravitee.am.gateway.handler.root.resources.endpoint.AbstractEndpoint;
+import io.gravitee.am.gateway.handler.root.service.user.UserService;
 import io.gravitee.am.model.Template;
 import io.gravitee.am.model.User;
 import io.gravitee.am.model.factor.EnrolledFactor;
@@ -59,10 +60,12 @@ public class MFAEnrollEndpoint extends AbstractEndpoint implements Handler<Routi
     private static final Logger logger = LoggerFactory.getLogger(MFAEnrollEndpoint.class);
 
     private final FactorManager factorManager;
+    private final UserService userService;
 
-    public MFAEnrollEndpoint(FactorManager factorManager, TemplateEngine engine) {
+    public MFAEnrollEndpoint(FactorManager factorManager, TemplateEngine engine, UserService userService) {
         super(engine);
         this.factorManager = factorManager;
+        this.userService = userService;
     }
 
     @Override
@@ -129,11 +132,11 @@ public class MFAEnrollEndpoint extends AbstractEndpoint implements Handler<Routi
 
     private void saveEnrollment(RoutingContext routingContext) {
         MultiMap params = routingContext.request().formAttributes();
-        final Boolean acceptEnrollment = Boolean.valueOf(params.get("user_mfa_enrollment"));
-        final String factorId = params.get("factorId");
-        final String sharedSecret = params.get("sharedSecret");
-        final String phoneNumber = params.get("phone");
-        final String emailAddress = params.get("email");
+        final Boolean acceptEnrollment = Boolean.valueOf(params.get(ConstantKeys.USER_MFA_ENROLLMENT));
+        final String factorId = params.get(ConstantKeys.MFA_ENROL_FACTOR_ID);
+        final String sharedSecret = params.get(ConstantKeys.MFA_ENROL_SHARED_SECRET);
+        final String phoneNumber = params.get(ConstantKeys.MFA_ENROL_PHONE);
+        final String emailAddress = params.get(ConstantKeys.MFA_ENROL_EMAIL);
 
         if (factorId == null) {
             logger.warn("No factor id in form - did you forget to include factor id value ?");
@@ -153,7 +156,8 @@ public class MFAEnrollEndpoint extends AbstractEndpoint implements Handler<Routi
         // manage enrolled factors
         // if user has skipped the enrollment process, continue
         if (!acceptEnrollment) {
-            routingContext.session().put(ConstantKeys.MFA_SKIPPED_KEY, true);
+            final User endUser = ((io.gravitee.am.gateway.handler.common.vertx.web.auth.user.User) routingContext.user().getDelegate()).getUser();
+            userService.setEnrolSkippedTime(client, endUser).doFinally(() -> redirectToAuthorize(routingContext)).subscribe();
         } else {
             FactorProvider provider = optFactor.get().getValue();
             if (provider.checkSecurityFactor(getSecurityFactor(params, optFactor.get().getKey()))) {
@@ -168,12 +172,16 @@ public class MFAEnrollEndpoint extends AbstractEndpoint implements Handler<Routi
                 if (emailAddress != null) {
                     routingContext.session().put(ConstantKeys.ENROLLED_FACTOR_EMAIL_ADDRESS, emailAddress);
                 }
+                redirectToAuthorize(routingContext);
             } else {
                 // parameters are invalid
                 routingContext.fail(400);
             }
         }
 
+    }
+
+    private void redirectToAuthorize(RoutingContext routingContext) {
         final MultiMap queryParams = RequestUtils.getCleanedQueryParams(routingContext.request());
         final String returnURL = UriBuilderRequest.resolveProxyRequest(routingContext.request(), routingContext.get(CONTEXT_PATH) + "/oauth/authorize", queryParams, true);
         doRedirect(routingContext.response(), returnURL);
