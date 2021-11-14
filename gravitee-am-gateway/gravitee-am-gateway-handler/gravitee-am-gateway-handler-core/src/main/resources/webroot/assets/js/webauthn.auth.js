@@ -98,11 +98,6 @@
     function WebAuthn(options) {
         this.registerPath = options.registerPath;
         this.loginPath = options.loginPath;
-        this.callbackPath = options.callbackPath;
-        // validation
-        if (!this.callbackPath) {
-            throw new Error('Callback path is missing!');
-        }
     }
 
     WebAuthn.constructor = WebAuthn;
@@ -139,28 +134,15 @@
             })
             .then(res => navigator.credentials.create({publicKey: res}))
             .then(credential => {
-                return fetch(self.callbackPath, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                return JSON.stringify({
+                    id: credential.id,
+                    rawId: bufferToBase64(credential.rawId),
+                    response: {
+                        attestationObject: bufferToBase64(credential.response.attestationObject),
+                        clientDataJSON: bufferToBase64(credential.response.clientDataJSON)
                     },
-                    body: JSON.stringify({
-                        id: credential.id,
-                        rawId: bufferToBase64(credential.rawId),
-                        response: {
-                            attestationObject: bufferToBase64(credential.response.attestationObject),
-                            clientDataJSON: bufferToBase64(credential.response.clientDataJSON)
-                        },
-                        type: credential.type
-                    }),
-                })
-            })
-            .then(res => {
-                if (res.status >= 200 && res.status < 300) {
-                    return res;
-                }
-                throw new Error(res.statusText);
+                    type: credential.type
+                });
             });
     };
 
@@ -195,30 +177,17 @@
             })
             .then(res => navigator.credentials.get({publicKey: res}))
             .then(credential => {
-                return fetch(self.callbackPath, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                return JSON.stringify({
+                    id: credential.id,
+                    rawId: bufferToBase64(credential.rawId),
+                    response: {
+                        clientDataJSON: bufferToBase64(credential.response.clientDataJSON),
+                        authenticatorData: bufferToBase64(credential.response.authenticatorData),
+                        signature: bufferToBase64(credential.response.signature),
+                        userHandle: bufferToBase64(credential.response.userHandle),
                     },
-                    body: JSON.stringify({
-                        id: credential.id,
-                        rawId: bufferToBase64(credential.rawId),
-                        response: {
-                            clientDataJSON: bufferToBase64(credential.response.clientDataJSON),
-                            authenticatorData: bufferToBase64(credential.response.authenticatorData),
-                            signature: bufferToBase64(credential.response.signature),
-                            userHandle: bufferToBase64(credential.response.userHandle),
-                        },
-                        type: credential.type
-                    }),
-                })
-            })
-            .then(res => {
-                if (res.status >= 200 && res.status < 300) {
-                    return res;
-                }
-                throw new Error(res.statusText);
+                    type: credential.type
+                });
             });
     };
 

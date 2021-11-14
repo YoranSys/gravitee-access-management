@@ -4,8 +4,7 @@ const loginForm = document.getElementById('login');
 const errorElement = document.getElementById('webauthn-error');
 
 const w = new WebAuthn({
-    loginPath: loginForm.action,
-    callbackPath:  loginForm.action.replace('/webauthn/login', '/webauthn/response')
+    loginPath: loginForm.action.replace('/webauthn/login', '/webauthn/login/credentials')
 });
 
 const displayMessage = message => {
@@ -24,7 +23,13 @@ loginForm.onsubmit = () => {
         })
         .then(res => {
             clearMessage();
-            window.location.replace(res.headers.get('Location'));
+            // insert value as hidden field and submit the form
+            let input = document.createElement("input");
+            input.setAttribute("type", "hidden");
+            input.setAttribute("name", "assertion");
+            input.setAttribute("value", res);
+            loginForm.appendChild(input);
+            loginForm.submit();
         })
         .catch(err => {
             displayMessage(err instanceof DOMException ? err.message : 'Invalid user');
