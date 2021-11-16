@@ -25,6 +25,7 @@ import io.gravitee.am.gateway.node.GatewayNode;
 import io.gravitee.am.gateway.node.GatewayNodeMetadataResolver;
 import io.gravitee.am.gateway.reactor.spring.ReactorConfiguration;
 import io.gravitee.am.gateway.vertx.VertxServerConfiguration;
+import io.gravitee.am.plugins.authdevice.notifier.spring.AuthenticationDeviceNotifierConfiguration;
 import io.gravitee.am.plugins.botdetection.spring.BotDetectionConfiguration;
 import io.gravitee.am.plugins.certificate.spring.CertificateConfiguration;
 import io.gravitee.am.plugins.extensiongrant.spring.ExtensionGrantConfiguration;
@@ -69,7 +70,8 @@ import org.springframework.context.annotation.Import;
         FactorConfiguration.class,
         ResourceConfiguration.class,
         BotDetectionConfiguration.class,
-        DeviceIdentifierConfiguration.class
+        DeviceIdentifierConfiguration.class,
+        AuthenticationDeviceNotifierConfiguration.class
 })
 public class StandaloneConfiguration {
 

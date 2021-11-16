@@ -387,6 +387,17 @@ import {DeviceIdentifierService} from "./services/device-identifier.service";
 import {DeviceIdentifierComponent} from "./domain/settings/deviceidentifiers/device-identifier/device-identifier.component";
 import { UserDevicesComponent } from './domain/settings/users/user/devices/devices.component';
 import {UserDevicesResolver} from "./resolvers/user-devices.resolver";
+import { CibaSettingsComponent } from './domain/settings/openid/ciba/settings/ciba-settings.component';
+import { DeviceNotifiersCreationComponent } from './domain/settings/openid/ciba/device-notifiers/create/device-notifiers-creation.component';
+import { DeviceNotifiersComponent } from './domain/settings/openid/ciba/device-notifiers/device-notifiers.component';
+import { DeviceNotifiersService } from './services/device-notifiers.service';
+import { DeviceNotifiersResolver } from './resolvers/device-notifiers.resolver';
+import { DeviceNotifierPluginsResolver } from './resolvers/device-notifier-plugins.resolver';
+import { DeviceNotifierResolver } from './resolvers/device-notifier.resolver';
+import { DeviceNotifierCreationStep1Component } from './domain/settings/openid/ciba/device-notifiers/create/steps/step1/step1.component';
+import { DeviceNotifierCreationStep2Component } from './domain/settings/openid/ciba/device-notifiers/create/steps/step2/step2.component';
+import { DeviceNotifierComponent } from './domain/settings/openid/ciba/device-notifiers/device-notifier/device-notifier.component';
+import { DeviceNotifierFormComponent } from './domain/settings/openid/ciba/device-notifiers/device-notifier/form/form.component';
 
 @NgModule({
   declarations: [
@@ -583,6 +594,13 @@ import {UserDevicesResolver} from "./resolvers/user-devices.resolver";
     UmaComponent,
     OIDCProfileComponent,
     CibaComponent,
+    CibaSettingsComponent,
+    DeviceNotifiersComponent,
+    DeviceNotifierComponent,
+    DeviceNotifierFormComponent,
+    DeviceNotifiersCreationComponent,
+    DeviceNotifierCreationStep1Component,
+    DeviceNotifierCreationStep2Component,
     LoginSettingsComponent,
     UsersSearchInfoDialog,
     NewsletterComponent,
@@ -730,6 +748,10 @@ import {UserDevicesResolver} from "./resolvers/user-devices.resolver";
     DeviceIdentifierPluginsResolver,
     DeviceIdentifiersResolver,
     DeviceIdentifierResolver,
+    DeviceNotifiersService,
+    DeviceNotifiersResolver,
+    DeviceNotifierResolver,
+    DeviceNotifierPluginsResolver,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: HttpRequestInterceptor,
