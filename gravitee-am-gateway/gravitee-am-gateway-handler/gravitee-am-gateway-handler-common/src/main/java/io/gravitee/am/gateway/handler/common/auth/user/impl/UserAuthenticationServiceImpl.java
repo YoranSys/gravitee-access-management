@@ -184,13 +184,8 @@ public class UserAuthenticationServiceImpl implements UserAuthenticationService 
             existingUser.setLoginsCount(existingUser.getLoginsCount() + 1);
         }
         // set roles
-        if (existingUser.getRoles() == null) {
-            existingUser.setRoles(principal.getRoles());
-        } else if (principal.getRoles() != null) {
-            // filter roles
-            principal.getRoles().removeAll(existingUser.getRoles());
-            existingUser.getRoles().addAll(principal.getRoles());
-        }
+        existingUser.setDynamicRoles(principal.getRoles());
+
         Map<String, Object> additionalInformation = principal.getAdditionalInformation();
         if (afterAuthentication && !additionalInformation.containsKey(ConstantKeys.OIDC_PROVIDER_ID_TOKEN_KEY) && existingUser.getAdditionalInformation() != null) {
             // remove the op_id_token from existing user profile to avoid keep this information
@@ -222,7 +217,7 @@ public class UserAuthenticationServiceImpl implements UserAuthenticationService 
             newUser.setLoggedAt(new Date());
             newUser.setLoginsCount(1L);
         }
-        newUser.setRoles(principal.getRoles());
+        newUser.setDynamicRoles(principal.getRoles());
 
         Map<String, Object> additionalInformation = principal.getAdditionalInformation();
         extractAdditionalInformation(newUser, additionalInformation);

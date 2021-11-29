@@ -250,6 +250,7 @@ public class UserServiceImpl implements UserService {
                                 userToUpdate.setCreatedAt(existingUser.getCreatedAt());
                                 userToUpdate.setUpdatedAt(new Date());
                                 userToUpdate.setFactors(existingUser.getFactors());
+                                userToUpdate.setDynamicRoles(existingUser.getDynamicRoles());
                                 UserFactorUpdater.updateFactors(existingUser.getFactors(), existingUser, userToUpdate);
 
                                 // set source
