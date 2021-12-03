@@ -49,6 +49,14 @@
               <mat-hint>Enables Identifier-first login automatic redirection to the provider when the user email domain matches the list</mat-hint>
             </mat-form-field>
           </div>
+          <div fxLayout="column" fxLayoutGap="5px">
+            <mat-slide-toggle
+              (change)="toggleStoreOriginalTokens()"
+              [checked]="isStoreOriginalTokenEnabled()">
+              Store original tokens
+            </mat-slide-toggle>
+            <mat-hint style="font-size: 75%;">If active, the access_token and id_token from the provider will be stored in the user additional information</mat-hint>
+          </div>
         </div>
       </div>
 

@@ -20,9 +20,9 @@ import io.gravitee.am.common.jwt.Claims;
 import io.gravitee.am.common.oauth2.Parameters;
 import io.gravitee.am.gateway.handler.common.auth.AuthenticationDetails;
 import io.gravitee.am.gateway.handler.common.auth.event.AuthenticationEvent;
+import io.gravitee.am.gateway.handler.common.auth.idp.IdentityProviderManager;
 import io.gravitee.am.gateway.handler.common.auth.user.EndUserAuthentication;
 import io.gravitee.am.gateway.handler.common.auth.user.UserAuthenticationManager;
-import io.gravitee.am.gateway.handler.common.utils.ConstantKeys;
 import io.gravitee.am.gateway.handler.common.vertx.core.http.VertxHttpServerRequest;
 import io.gravitee.am.gateway.handler.common.vertx.utils.RequestUtils;
 import io.gravitee.am.gateway.handler.common.vertx.web.auth.provider.UserAuthProvider;
@@ -45,6 +45,8 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.gravitee.am.gateway.handler.common.utils.ConstantKeys.*;
+
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
@@ -53,28 +55,30 @@ public class SocialAuthenticationProvider implements UserAuthProvider {
 
     private final Logger logger = LoggerFactory.getLogger(SocialAuthenticationProvider.class);
 
-    private UserAuthenticationManager userAuthenticationManager;
+    private final UserAuthenticationManager userAuthenticationManager;
 
-    private EventManager eventManager;
+    private final EventManager eventManager;
 
     private Domain domain;
 
-    public SocialAuthenticationProvider() {
-    }
+    private IdentityProviderManager identityProviderManager;
 
-    public SocialAuthenticationProvider(UserAuthenticationManager userAuthenticationManager, EventManager eventManager, Domain domain) {
+    public SocialAuthenticationProvider(UserAuthenticationManager userAuthenticationManager,
+                                        IdentityProviderManager identityProviderManager,
+                                        EventManager eventManager, Domain domain) {
         this.userAuthenticationManager = userAuthenticationManager;
+        this.identityProviderManager = identityProviderManager;
         this.eventManager = eventManager;
         this.domain = domain;
     }
 
     @Override
     public void authenticate(RoutingContext context, JsonObject authInfo, Handler<AsyncResult<User>> resultHandler) {
-        final Client client = context.get(ConstantKeys.CLIENT_CONTEXT_KEY);
-        final AuthenticationProvider authenticationProvider = context.get(ConstantKeys.PROVIDER_CONTEXT_KEY);
-        final String authProvider = context.get(ConstantKeys.PROVIDER_ID_PARAM_KEY);
-        final String username = authInfo.getString(ConstantKeys.USERNAME_PARAM_KEY);
-        final String password = authInfo.getString(ConstantKeys.PASSWORD_PARAM_KEY);
+        final Client client = context.get(CLIENT_CONTEXT_KEY);
+        final AuthenticationProvider authenticationProvider = context.get(PROVIDER_CONTEXT_KEY);
+        final String authProvider = context.get(PROVIDER_ID_PARAM_KEY);
+        final String username = authInfo.getString(USERNAME_PARAM_KEY);
+        final String password = authInfo.getString(PASSWORD_PARAM_KEY);
 
         logger.debug("Authentication attempt using social identity provider {}", authProvider);
 
@@ -96,13 +100,28 @@ public class SocialAuthenticationProvider implements UserAuthProvider {
                     Map<String, Object> additionalInformation = user.getAdditionalInformation() == null ? new HashMap<>() : new HashMap<>(user.getAdditionalInformation());
                     additionalInformation.put("source", authProvider);
                     additionalInformation.put(Parameters.CLIENT_ID, client.getClientId());
-                    if (client.isSingleSignOut() && endUserAuthentication.getContext().get(ConstantKeys.ID_TOKEN_KEY) != null) {
+
+                    final boolean isSSOWithIdToken = isSSOWithIdTokenKey(client, endUserAuthentication);
+                    if (isSSOWithIdToken) {
                         logger.debug("Single SignOut enable for client '{}' store the id_token coming from the provider {} as additional information", client.getId(), authProvider);
-                        additionalInformation.put(ConstantKeys.OIDC_PROVIDER_ID_TOKEN_KEY, endUserAuthentication.getContext().get(ConstantKeys.ID_TOKEN_KEY));
+                        additionalInformation.put(OIDC_PROVIDER_ID_TOKEN_KEY, endUserAuthentication.getContext().get(ID_TOKEN_KEY));
                     } else {
                         // clear the claim if the singleSignOut is disabled
-                        additionalInformation.remove(ConstantKeys.OIDC_PROVIDER_ID_TOKEN_KEY);
+                        additionalInformation.remove(OIDC_PROVIDER_ID_TOKEN_KEY);
                     }
+
+                    var idp = identityProviderManager.getIdentityProvider(authProvider);
+                    if (idp != null && idp.isExternal() && idp.isStoreOriginalTokens()) {
+                        logger.debug("Storing original access_token and id_token from provider {}", authProvider);
+                        additionalInformation.put(OIDC_PROVIDER_ID_TOKEN_KEY, endUserAuthentication.getContext().get(ID_TOKEN_KEY));
+                        additionalInformation.put(OIDC_PROVIDER_ID_ACCESS_TOKEN_KEY, endUserAuthentication.getContext().get(ACCESS_TOKEN_KEY));
+                    } else {
+                        additionalInformation.remove(OIDC_PROVIDER_ID_ACCESS_TOKEN_KEY);
+                        if (!isSSOWithIdToken) {
+                            additionalInformation.remove(OIDC_PROVIDER_ID_TOKEN_KEY);
+                        }
+                    }
+
                     ((DefaultUser) user).setAdditionalInformation(additionalInformation);
                     return userAuthenticationManager.connect(user);
                 })
@@ -115,5 +134,10 @@ public class SocialAuthenticationProvider implements UserAuthProvider {
                     resultHandler.handle(Future.failedFuture(error));
                 });
 
+    }
+
+    private boolean isSSOWithIdTokenKey(Client client, EndUserAuthentication endUserAuthentication) {
+        return client.isSingleSignOut() &&
+                endUserAuthentication.getContext().get(ID_TOKEN_KEY) != null;
     }
 }

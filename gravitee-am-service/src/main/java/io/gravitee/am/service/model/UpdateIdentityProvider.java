@@ -37,6 +37,8 @@ public class UpdateIdentityProvider {
 
     private List<String> domainWhitelist;
 
+    private boolean storeOriginalTokens;
+
     public String getName() {
         return name;
     }
@@ -75,6 +77,14 @@ public class UpdateIdentityProvider {
 
     public void setDomainWhitelist(List<String> domainWhitelist) {
         this.domainWhitelist = domainWhitelist;
+    }
+
+    public boolean isStoreOriginalTokens() {
+        return storeOriginalTokens;
+    }
+
+    public void setStoreOriginalTokens(boolean storeOriginalTokens) {
+        this.storeOriginalTokens = storeOriginalTokens;
     }
 
     @Override

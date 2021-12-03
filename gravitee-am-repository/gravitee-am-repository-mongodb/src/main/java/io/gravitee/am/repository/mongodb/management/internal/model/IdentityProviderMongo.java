@@ -15,7 +15,6 @@
  */
 package io.gravitee.am.repository.mongodb.management.internal.model;
 
-import com.mongodb.BasicDBList;
 import io.gravitee.am.model.ReferenceType;
 import io.gravitee.am.repository.mongodb.common.model.Auditable;
 import org.bson.BsonArray;
@@ -54,6 +53,8 @@ public class IdentityProviderMongo extends Auditable {
     private String referenceId;
 
     private boolean external;
+
+    private boolean storeOriginalTokens;
 
     public String getId() {
         return id;
@@ -133,6 +134,14 @@ public class IdentityProviderMongo extends Auditable {
 
     public void setDomainWhitelist(BsonArray domainWhitelist) {
         this.domainWhitelist = domainWhitelist;
+    }
+
+    public boolean isStoreOriginalTokens() {
+        return storeOriginalTokens;
+    }
+
+    public void setStoreOriginalTokens(boolean storeOriginalTokens) {
+        this.storeOriginalTokens = storeOriginalTokens;
     }
 
     @Override

@@ -15,7 +15,6 @@
  */
 package io.gravitee.am.repository.mongodb.management;
 
-import com.mongodb.BasicDBList;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import io.gravitee.am.common.utils.RandomString;
 import io.gravitee.am.model.IdentityProvider;
@@ -23,8 +22,8 @@ import io.gravitee.am.model.ReferenceType;
 import io.gravitee.am.repository.exceptions.TechnicalException;
 import io.gravitee.am.repository.management.api.IdentityProviderRepository;
 import io.gravitee.am.repository.mongodb.management.internal.model.IdentityProviderMongo;
-import io.reactivex.*;
 import io.reactivex.Observable;
+import io.reactivex.*;
 import org.bson.BsonArray;
 import org.bson.BsonString;
 import org.bson.BsonValue;
@@ -32,9 +31,7 @@ import org.bson.Document;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.swing.text.html.Option;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -141,6 +138,7 @@ public class MongoIdentityProviderRepository extends AbstractManagementMongoRepo
         identityProvider.setReferenceType(identityProviderMongo.getReferenceType());
         identityProvider.setReferenceId(identityProviderMongo.getReferenceId());
         identityProvider.setExternal(identityProviderMongo.isExternal());
+        identityProvider.setStoreOriginalTokens(identityProviderMongo.isStoreOriginalTokens());
         identityProvider.setDomainWhitelist(
                 ofNullable(identityProviderMongo.getDomainWhitelist()).orElse(new BsonArray())
                         .stream().map(BsonValue::asString).map(BsonString::getValue)
@@ -160,6 +158,7 @@ public class MongoIdentityProviderRepository extends AbstractManagementMongoRepo
             identityProviderMongo.setReferenceType(identityProvider.getReferenceType());
             identityProviderMongo.setReferenceId(identityProvider.getReferenceId());
             identityProviderMongo.setExternal(identityProvider.isExternal());
+            identityProviderMongo.setStoreOriginalTokens(identityProvider.isStoreOriginalTokens());
             identityProviderMongo.setCreatedAt(identityProvider.getCreatedAt());
             identityProviderMongo.setUpdatedAt(identityProvider.getUpdatedAt());
             var mappers = new Document((Map) ofNullable(identityProvider.getMappers()).filter(Objects::nonNull).orElse(Map.of()));

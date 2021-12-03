@@ -37,6 +37,7 @@ export class ProviderCreationStep1Component implements OnInit {
 
   private initDomainWhitelist(idpType:string) {
     this.provider.domainWhitelist = [];
+    this.provider.storeOriginalTokens = false;
     if(idpType === 'google-am-idp'){
       this.provider.domainWhitelist.push("gmail.com");
     }

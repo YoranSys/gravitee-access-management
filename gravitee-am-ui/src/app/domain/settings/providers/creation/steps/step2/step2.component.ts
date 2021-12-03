@@ -84,4 +84,11 @@ export class ProviderCreationStep2Component implements OnInit, OnChanges {
     }
   }
 
+  toggleStoreOriginalTokens() {
+    this.provider.storeOriginalTokens = !this.provider.storeOriginalTokens;
+  }
+
+  isStoreOriginalTokenEnabled() {
+    return this.provider.storeOriginalTokens == true;
+  }
 }

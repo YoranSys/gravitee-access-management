@@ -45,6 +45,8 @@ public class IdentityProvider {
 
     private List<String> domainWhitelist;
 
+    private boolean storeOriginalTokens;
+
     private Date createdAt;
 
     private Date updatedAt;
@@ -63,6 +65,7 @@ public class IdentityProvider {
         this.referenceId = other.referenceId;
         this.external = other.external;
         this.domainWhitelist = other.domainWhitelist;
+        this.storeOriginalTokens = other.storeOriginalTokens;
         this.createdAt = other.createdAt;
         this.updatedAt = other.updatedAt;
     }
@@ -161,6 +164,14 @@ public class IdentityProvider {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isStoreOriginalTokens() {
+        return storeOriginalTokens;
+    }
+
+    public void setStoreOriginalTokens(boolean storeOriginalTokens) {
+        this.storeOriginalTokens = storeOriginalTokens;
     }
 
     @Override

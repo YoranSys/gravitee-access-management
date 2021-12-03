@@ -60,6 +60,7 @@ export class ProviderService {
       'name' : provider.name,
       'configuration' : provider.configuration,
       'domainWhitelist' : provider.domainWhitelist,
+      'storeOriginalTokens' : provider.storeOriginalTokens,
       'mappers' : provider.mappers,
       'roleMapper' : provider.roleMapper
     });

@@ -267,7 +267,7 @@ public class RootProvider extends AbstractService<ProtocolProvider> implements P
                 .handler(new LogoutCallbackEndpoint(domain, tokenService, auditService, authenticationFlowContextService));
 
         // SSO/Social login route
-        Handler<RoutingContext> socialAuthHandler = SocialAuthHandler.create(new SocialAuthenticationProvider(userAuthenticationManager, eventManager, domain));
+        Handler<RoutingContext> socialAuthHandler = SocialAuthHandler.create(new SocialAuthenticationProvider(userAuthenticationManager, identityProviderManager, eventManager, domain));
         Handler<RoutingContext> loginCallbackParseHandler = new LoginCallbackParseHandler(clientSyncService, identityProviderManager, jwtService, certificateManager);
         Handler<RoutingContext> loginCallbackOpenIDConnectFlowHandler = new LoginCallbackOpenIDConnectFlowHandler(thymeleafTemplateEngine);
         Handler<RoutingContext> loginCallbackFailureHandler = new LoginCallbackFailureHandler(authenticationFlowContextService);

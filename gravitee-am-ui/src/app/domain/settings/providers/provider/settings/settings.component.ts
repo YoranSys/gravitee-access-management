@@ -152,4 +152,13 @@ export class ProviderSettingsComponent implements OnInit {
   valueCopied(message: string) {
     this.snackbarService.open(message);
   }
+
+  isStoreOriginalTokenEnabled() {
+    return this.provider.storeOriginalTokens == true;
+  }
+
+  toggleStoreOriginalTokens() {
+    this.provider.storeOriginalTokens = !this.provider.storeOriginalTokens;
+    this.form.form.markAsDirty();
+  }
 }

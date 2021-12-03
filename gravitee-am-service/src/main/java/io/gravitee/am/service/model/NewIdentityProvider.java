@@ -39,6 +39,8 @@ public class NewIdentityProvider {
 
     private boolean external;
 
+    private boolean storeOriginalTokens;
+
     public String getId() {
         return id;
     }
@@ -85,6 +87,14 @@ public class NewIdentityProvider {
 
     public void setDomainWhitelist(List<String> domainWhitelist) {
         this.domainWhitelist = domainWhitelist;
+    }
+
+    public boolean isStoreOriginalTokens() {
+        return storeOriginalTokens;
+    }
+
+    public void setStoreOriginalTokens(boolean storeOriginalTokens) {
+        this.storeOriginalTokens = storeOriginalTokens;
     }
 
     @Override

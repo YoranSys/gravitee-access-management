@@ -178,6 +178,7 @@ public abstract class AbstractOpenIDConnectAuthenticationProvider extends Abstra
 
                     JsonObject response = httpResponse.bodyAsJsonObject();
                     String accessToken = response.getString(ACCESS_TOKEN_PARAMETER);
+                    authentication.getContext().set(ACCESS_TOKEN_PARAMETER, accessToken);
                     String idToken = response.getString(ID_TOKEN_PARAMETER);
                     if (!Strings.isNullOrEmpty(idToken)) {
                         authentication.getContext().set(ID_TOKEN_PARAMETER, idToken);

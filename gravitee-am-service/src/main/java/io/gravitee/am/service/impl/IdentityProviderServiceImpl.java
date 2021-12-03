@@ -144,6 +144,7 @@ public class IdentityProviderServiceImpl implements IdentityProviderService {
         identityProvider.setType(newIdentityProvider.getType());
         identityProvider.setConfiguration(newIdentityProvider.getConfiguration());
         identityProvider.setExternal(newIdentityProvider.isExternal());
+        identityProvider.setStoreOriginalTokens(newIdentityProvider.isStoreOriginalTokens());
         identityProvider.setDomainWhitelist(ofNullable(newIdentityProvider.getDomainWhitelist()).orElse(List.of()));
         identityProvider.setCreatedAt(new Date());
         identityProvider.setUpdatedAt(identityProvider.getCreatedAt());
@@ -181,6 +182,7 @@ public class IdentityProviderServiceImpl implements IdentityProviderService {
                     identityToUpdate.setMappers(updateIdentityProvider.getMappers());
                     identityToUpdate.setRoleMapper(updateIdentityProvider.getRoleMapper());
                     identityToUpdate.setDomainWhitelist(ofNullable(updateIdentityProvider.getDomainWhitelist()).orElse(List.of()));
+                    identityToUpdate.setStoreOriginalTokens(updateIdentityProvider.isStoreOriginalTokens());
                     identityToUpdate.setUpdatedAt(new Date());
 
                     return identityProviderRepository.update(identityToUpdate)
@@ -204,7 +206,6 @@ public class IdentityProviderServiceImpl implements IdentityProviderService {
 
     @Override
     public Single<IdentityProvider> update(String domain, String id, UpdateIdentityProvider updateIdentityProvider, User principal) {
-
         return update(ReferenceType.DOMAIN, domain, id, updateIdentityProvider, principal);
     }
 
@@ -244,7 +245,6 @@ public class IdentityProviderServiceImpl implements IdentityProviderService {
 
     @Override
     public Completable delete(String domain, String identityProviderId, User principal) {
-
         return delete(ReferenceType.DOMAIN, domain, identityProviderId, principal);
     }
 }
