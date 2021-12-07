@@ -51,7 +51,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -117,7 +116,7 @@ public class IDTokenServiceImpl implements IDTokenService {
                                 return jwtService.encode(idToken, certificateProvider);
                             })
                             .flatMap(signedIdToken -> {
-                                if(client.getIdTokenEncryptedResponseAlg()!=null) {
+                                if (client.getIdTokenEncryptedResponseAlg() != null) {
                                     return jweService.encryptIdToken(signedIdToken, client);
                                 }
                                 return Single.just(signedIdToken);
@@ -128,16 +127,14 @@ public class IDTokenServiceImpl implements IDTokenService {
     @Override
     public Single<User> extractUser(String idToken, Client client) {
         return jwtService.decodeAndVerify(idToken, client)
-                .flatMap(jwt -> {
-                    return userService.findById(jwt.getSub())
-                            .switchIfEmpty(Single.error(new UserNotFoundException(jwt.getSub())))
-                            .map(user -> {
-                                if (!user.getReferenceId().equals(domain.getId())) {
-                                    throw new UserNotFoundException(jwt.getSub());
-                                }
-                                return user;
-                            });
-                });
+                .flatMap(jwt -> userService.findById(jwt.getSub())
+                        .switchIfEmpty(Single.error(new UserNotFoundException(jwt.getSub())))
+                        .map(user -> {
+                            if (!user.getReferenceId().equals(domain.getId())) {
+                                throw new UserNotFoundException(jwt.getSub());
+                            }
+                            return user;
+                        }));
     }
 
     public void setObjectMapper(ObjectMapper objectMapper) {
@@ -172,7 +169,7 @@ public class IDTokenServiceImpl implements IDTokenService {
         // we decided to always provide this claim during the Financial-grand API conformance implementation
         // since this claim was return by default in some cases even if conditions that require it were missing
         if (!oAuth2Request.isClientOnly() && user != null && user.getLoggedAt() != null) {
-            idToken.setAuthTime(user.getLoggedAt().getTime() / 1000l);
+            idToken.setAuthTime(user.getLoggedAt().getTime() / 1000L);
         }
 
         // set nonce
@@ -183,21 +180,15 @@ public class IDTokenServiceImpl implements IDTokenService {
 
         // processing claims list
         if (!oAuth2Request.isClientOnly() && user != null && user.getAdditionalInformation() != null) {
-            boolean requestForSpecificClaims = false;
-            Map<String, Object> userClaims = user.getAdditionalInformation();
+            Map<String, Object> fullProfileClaims = user.getAdditionalInformation();
             // 1. process the request using scope values
             if (oAuth2Request.getScopes() != null) {
-                requestForSpecificClaims = processScopesRequest(oAuth2Request.getScopes(), userClaims, idToken);
+                processScopesRequest(oAuth2Request.getScopes(), idToken, fullProfileClaims);
             }
 
             // 2. process the request using the claims values (If present, the listed Claims are being requested to be added to the default Claims in the ID Token)
             if (oAuth2Request.parameters() != null && oAuth2Request.parameters().getFirst(Parameters.CLAIMS) != null) {
-                requestForSpecificClaims = processClaimsRequest(oAuth2Request.parameters().getFirst(Parameters.CLAIMS), userClaims, idToken);
-            }
-
-            // 3. If no claims requested, grab all user claims
-            if (!requestForSpecificClaims) {
-                userClaims.forEach((k, v) -> idToken.addAdditionalClaim(k, v));
+                processClaimsRequest(oAuth2Request.parameters().getFirst(Parameters.CLAIMS), fullProfileClaims, idToken);
             }
         }
 
@@ -211,54 +202,42 @@ public class IDTokenServiceImpl implements IDTokenService {
      * For OpenID Connect, scopes can be used to request that specific sets of information be made available as Claim Values.
      *
      * @param scopes scopes request parameter
-     * @param userClaims user full claims list
-     * @param requestedClaims requested claims
-     * @return true if OpenID Connect scopes have been found
+     * @param idToken requested claims
+     * @param fullProfileClaims full user profile claims list
      */
-    private boolean processScopesRequest(Set<String> scopes, final Map<String, Object> userClaims, Map<String, Object> requestedClaims) {
+    private void processScopesRequest(Set<String> scopes, IDToken idToken, final Map<String, Object> fullProfileClaims) {
         // if full_profile requested, continue
         if (scopes.contains(Scope.FULL_PROFILE.getKey())) {
-            return false;
+            idToken.putAll(fullProfileClaims);
+        } else {
+            // get requested scopes claims
+            scopes.stream()
+                    .map(String::toUpperCase)
+                    .filter(Scope::exists)
+                    .filter(scope -> !Scope.valueOf(scope).getClaims().isEmpty())
+                    .map(Scope::valueOf)
+                    .map(Scope::getClaims)
+                    .flatMap(List::stream)
+                    .filter(fullProfileClaims::containsKey)
+                    .forEach(scopeClaim ->
+                            idToken.addAdditionalClaim(scopeClaim, fullProfileClaims.get(scopeClaim))
+                    );
         }
-
-        // get requested scopes claims
-        final List<String> scopesClaims = scopes.stream()
-                .map(scope -> scope.toUpperCase())
-                .filter(scope -> Scope.exists(scope) && !Scope.valueOf(scope).getClaims().isEmpty())
-                .map(scope -> Scope.valueOf(scope))
-                .map(scope -> scope.getClaims())
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-
-        // no OpenID Connect scopes requested continue
-        if (scopesClaims.isEmpty()) {
-            return false;
-        }
-
-        // return specific available sets of information made by scope value request
-        scopesClaims.forEach(scopeClaim -> {
-            if (userClaims.containsKey(scopeClaim)) {
-                requestedClaims.putIfAbsent(scopeClaim, userClaims.get(scopeClaim));
-            }
-        });
-
-        return true;
     }
 
     /**
      * Handle claims request previously made during the authorization request
      * @param claimsValue claims request parameter
-     * @param userClaims user full claims list
+     * @param fullProfileClaims full user profile claims list
      * @param idToken requested claims
-     * @return true if id_token claims have been found
      */
-    private boolean processClaimsRequest(String claimsValue, final Map<String, Object> userClaims, IDToken idToken) {
+    private void processClaimsRequest(String claimsValue, final Map<String, Object> fullProfileClaims, IDToken idToken) {
         try {
             ClaimsRequest claimsRequest = objectMapper.readValue(claimsValue, ClaimsRequest.class);
             if (claimsRequest != null && claimsRequest.getIdTokenClaims() != null) {
                 claimsRequest.getIdTokenClaims().forEach((key, claimRequest) -> {
-                    if (userClaims.containsKey(key)) {
-                        idToken.addAdditionalClaim(key, userClaims.get(key));
+                    if (fullProfileClaims.containsKey(key)) {
+                        idToken.addAdditionalClaim(key, fullProfileClaims.get(key));
                     } else {
                         if (claimRequest.getValues() != null) {
                             idToken.addAdditionalClaim(key, claimRequest.getValues());
@@ -267,12 +246,10 @@ public class IDTokenServiceImpl implements IDTokenService {
                         }
                     }
                 });
-                return true;
             }
         } catch (Exception e) {
             // Any members used that are not understood MUST be ignored.
         }
-        return false;
     }
 
     private String getHashValue(String payload, String digestAlgorithm) {
