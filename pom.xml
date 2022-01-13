@@ -78,7 +78,7 @@
         <gravitee-platform-repository-api.version>1.0.0</gravitee-platform-repository-api.version>
         <gravitee-cockpit-api.version>1.7.0</gravitee-cockpit-api.version>
         <spring.version>5.2.17.RELEASE</spring.version>
-        <spring-security.version>5.4.8</spring-security.version>
+        <spring-security.version>5.5.4</spring-security.version>
         <spring-integration.version>5.2.11.RELEASE</spring-integration.version>
         <nimbus.version>8.17</nimbus.version>
         <tink.version>1.6.1</tink.version>
@@ -100,7 +100,7 @@
         <hibernate-validator.version>6.1.5.Final</hibernate-validator.version>
         <ldaptive.version>1.2.4</ldaptive.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-        <thymeleaf.version>3.0.11.RELEASE</thymeleaf.version>
+        <thymeleaf.version>3.0.13.RELEASE</thymeleaf.version>
         <bouncycastle.version>1.69</bouncycastle.version>
         <wiremock.version>2.6.0</wiremock.version>
         <embedded-ldap-junit.version>0.7</embedded-ldap-junit.version>
