@@ -37,7 +37,7 @@
     "codemirror": "^5.62.0",
     "codemirror-asciidoc": "^1.0.4",
     "core-js": "^2.6.11",
-    "highcharts": "^9.1.2",
+    "highcharts": "^9.3.1",
     "highcharts-angular": "^2.10.0",
     "highlight": "^0.2.4",
     "highlight.js": "^10.7.3",
